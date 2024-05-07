@@ -1,1 +1,5 @@
 fake-useragent
+xlrd
+xpinyin
+openpyxl
+opencv-python
