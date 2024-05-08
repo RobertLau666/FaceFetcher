@@ -110,7 +110,7 @@ class Picture:
         else: # 未指定尺寸
             self.url = 'https://image.baidu.com/search/acjson?tn=resultjson_com&logid=8032920601831512061&ipn=rj&ct=201326592&is=&fp=result&fr=&word={}&cg=star&queryWord={}&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=&height=&face=&istype=&qc=&nc=1&expermode=&nojc=&isAsync=&pn={}&rn=30&gsm=1e&{}='
         
-        self.headers = {'User-Agent':UserAgent().random}
+        self.headers = {'User-Agent': UserAgent().random}
 
     #请求30张图片的链接
     def get_one_html(self, url, pn):
@@ -276,9 +276,7 @@ class Picture:
 
 def read_excel(excel_path):
     book = xlrd.open_workbook(excel_path)
-
     sheet = book.sheet_by_name(u'Sheet{}'.format(sheet_num))
-
     nrows, ncols = sheet.nrows, sheet.ncols
 
     name_list = []
@@ -305,7 +303,7 @@ def cn_en_write(excel_path):
         result1 = p.get_pinyin(cn_names[i])
         s = result1.split('-')
         result3 = s[0].capitalize() + ''.join(s[1:]).capitalize()
-        cn_en_name_list.append([cn_names[i], result3, '0'])
+        cn_en_name_list.append([cn_names[i], result3, 0])
     cn_en_name_list = sorted(cn_en_name_list, key=lambda x: x[1])
     print('cn_en_name_list', cn_en_name_list)
     
