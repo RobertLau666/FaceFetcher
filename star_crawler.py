@@ -1,25 +1,22 @@
 # -!- coding: utf-8 -!-
 import re
 import requests
-import time #时间模块
-from urllib import parse #对汉字进行编码
-import os #文件操作
-from fake_useragent import UserAgent #随机生成一个user-agent
-
-import xlrd
-from xpinyin import Pinyin
-
-import openpyxl
-from openpyxl import Workbook
-from openpyxl import load_workbook
-from openpyxl.writer.excel import ExcelWriter
-
+import time
+from urllib import parse
+import os
 import cv2
 import PIL
 from PIL import Image
 from io import BytesIO
 import numpy as np
 
+import openpyxl
+from openpyxl import Workbook, load_workbook
+from openpyxl.writer.excel import ExcelWriter
+import xlrd
+from xpinyin import Pinyin
+
+from fake_useragent import UserAgent
 from tqdm.auto import tqdm
 
 # envpath = '/data/storage1/public/chenyu.liu/anaconda3/envs/py37/lib/python3.7/site-packages/cv2/qt/plugins/platforms'
@@ -83,10 +80,9 @@ def resize(img,img_size):
     return img
 
 class Picture:
-
     def __init__(self,I,cn_name,en_name,en_name_dir):
         self.I=I
-        self.cn_name = cn_name #input('请输入关键字:')
+        self.cn_name = cn_name
         self.en_name = en_name
         self.en_name_dir=en_name_dir
         self.name = parse.quote(self.cn_name+limit) #周杰伦 --> 编码
@@ -95,7 +91,16 @@ class Picture:
         # 全部尺寸
         # self.url = 'https://image.baidu.com/search/acjson?tn=resultjson_com&logid=8032920601831512061&ipn=rj&ct=201326592&is=&fp=result&fr=&word={}&cg=star&queryWord={}&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=&height=&face=&istype=&qc=&nc=1&expermode=&nojc=&isAsync=&pn={}&rn=30&gsm=1e&{}='
         # 特大尺寸
-        self.url = 'https://image.baidu.com/search/acjson?tn=resultjson_com&logid=5314417940526052016&ipn=rj&ct=201326592&is=&fp=result&fr=&word={}&cg=star&queryWord={}&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=9&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=0&height=0&face=&istype=&qc=&nc=&expermode=&nojc=&isAsync=&pn={}&rn=30&gsm=1e&{}='
+        # self.url = 'https://image.baidu.com/search/acjson?tn=resultjson_com&logid=5314417940526052016&ipn=rj&ct=201326592&is=&fp=result&fr=&word={}&cg=star&queryWord={}&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=9&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=0&height=0&face=&istype=&qc=&nc=&expermode=&nojc=&isAsync=&pn={}&rn=30&gsm=1e&{}='
+        
+        self.url = None
+        if size_type == "all": # 全部尺寸
+            self.url = 'https://image.baidu.com/search/acjson?tn=resultjson_com&logid=8032920601831512061&ipn=rj&ct=201326592&is=&fp=result&fr=&word={}&cg=star&queryWord={}&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=&height=&face=&istype=&qc=&nc=1&expermode=&nojc=&isAsync=&pn={}&rn=30&gsm=1e&{}='
+        elif size_type == "extra large": # 特大尺寸
+            self.url = 'https://image.baidu.com/search/acjson?tn=resultjson_com&logid=5314417940526052016&ipn=rj&ct=201326592&is=&fp=result&fr=&word={}&cg=star&queryWord={}&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=9&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=0&height=0&face=&istype=&qc=&nc=&expermode=&nojc=&isAsync=&pn={}&rn=30&gsm=1e&{}='
+        else: # 未指定尺寸
+            self.url = 'https://image.baidu.com/search/acjson?tn=resultjson_com&logid=8032920601831512061&ipn=rj&ct=201326592&is=&fp=result&fr=&word={}&cg=star&queryWord={}&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=&height=&face=&istype=&qc=&nc=1&expermode=&nojc=&isAsync=&pn={}&rn=30&gsm=1e&{}='
+        
         self.headers = {'User-Agent':UserAgent().random}
 
     #请求30张图片的链接
@@ -262,29 +267,15 @@ class Picture:
                 break
 
 def read_excel(excel_path):
-    book = xlrd.open_workbook(excel_path)  # 获取工作簿对象
-    # names = book.sheet_names()  # 获取所有工作表名称结果为列表
+    book = xlrd.open_workbook(excel_path)
 
-    # mySheets = book.sheets()                 # 获取工作表list。
-    # sheet = mySheets[0]                    # 通过索引顺序获取。
-
-    # sheet = book.sheet_by_index(0)         # 通过索引顺序获取。
     sheet = book.sheet_by_name(u'Sheet{}'.format(sheet_num))  # 通过名称获取 u表示后面字符串以 Unicode 格式 进行编码，一般用在中文字符串前面，以防乱码
 
-    # # 获取行数和列数
     nrows = sheet.nrows
     ncols = sheet.ncols
 
-    # # 获取一行和一列
-    # row = sheet.row_values(i)               # i是行数，从0开始计数，返回list对象。
-    # col = sheet.col_values(i)               # i是列数，从0开始计数，返回list对象。
-
-    # 读取单元格数据
     name_list =[]
     for i in range(nrows):
-        # row=[]
-        # for j in range(ncols):
-        #     row.append(sheet.cell_value(i, j))
         row = sheet.row_values(i)
         name_list.append(row)
 
@@ -292,60 +283,60 @@ def read_excel(excel_path):
 
 
 def cn_en_write(excel_path):
-    book = xlrd.open_workbook(excel_path)  # 获取工作簿对象
+    book = xlrd.open_workbook(excel_path)
     sheet = book.sheet_by_name(u'Sheet{}'.format(sheet_num))  # 通过名称获取 u表示后面字符串以 Unicode 格式 进行编码，一般用在中文字符串前面，以防乱码
-    cn_name_list = sheet.col_values(0)               # i是列数，从0开始计数，返回list对象。
+    cn_name_list = sheet.col_values(0)
 
     p = Pinyin()
-    en_name_list = []
+    cn_en_name_list = []
     for i in range(len(cn_name_list)):
         result1 = p.get_pinyin(cn_name_list[i])
         s = result1.split('-')
-        result3 = s[0].capitalize() + ' ' + ''.join(s[1:]).capitalize()
-        result3=''.join(result3.split())
-        en_name_list.append(result3)
-    print('en_name_list',en_name_list)
+        result3 = s[0].capitalize() + ''.join(s[1:]).capitalize()
+        # result3=''.join(result3.split())
+        cn_en_name_list.append([cn_name_list[i], result3])
+    cn_en_name_list = sorted(cn_en_name_list, key=lambda x: x[1])
+    print('cn_en_name_list', cn_en_name_list)
     
-    # 加载工作簿：
     wb = openpyxl.load_workbook(excel_path)
-    # 获取工作簿的工作表：
     ws = wb["Sheet{}".format(sheet_num)]
     for i in range(len(cn_name_list)):
-        # 修改数据：
-        ws["B"+str(i+1)] = en_name_list[i]
-    # 对数据表修改之后，一定要保存数据表：
+        ws["A"+str(i+1)] = cn_en_name_list[i][0]
+        ws["B"+str(i+1)] = cn_en_name_list[i][1]
     wb.save(excel_path)
-    return en_name_list
 
-## 参数
-root_dir='Stars'
-man=False
+    return cn_en_name_list
+
+## 参数设置
+root_dir = 'Stars'
+man = False # True
 # 每个人需要多少张图片
-max_pic_num=10
-# 从第几个人开始 默认从1开始 就是去掉0chinese
-start=66
+max_pic_num = 10
+# 从第几个人开始 第一行就是序号为0
+start = 24
+# 指定下载图片尺寸类型
+size_type = "extra large"
 # 放大倍数
 # b=1.5
 # 裁剪后可接受的长宽比
 # rate=1.3
 #' 正脸 高清 大尺寸'
-limit=''
+limit = ''
 # 分别对应 全部尺寸0 特大尺寸9 大尺寸3 中尺寸2 小尺寸1 暂时没用到该参数 还是调上面self.url就行了
-size_level=9
+size_level = 9
 # 分辨率分界线，低于这个的pass掉
-resolution=768
+resolution = 768
 # 脸图比例，小于这个不考虑
-face_img_rate=0.03
+face_img_rate = 0.03
 # resize后的图像大小
-img_size=768
+img_size = 768
 
 # 根据参数变化
-gender='man' if man else 'woman'
-excel_path='stars.xlsx'
-sheet_num=1 if man else 2
-
-star_concept_name='concept'
-star_output_name='generated' #若没有可自动创建
+gender = 'man' if man else 'woman'
+excel_path = 'stars.xlsx'
+sheet_num = 1 if man else 2
+star_concept_name = 'concept'
+star_output_name = 'generated' #若没有可自动创建
 
 def main():
     # 中文名转为英文名，写入文件
@@ -360,10 +351,10 @@ def main():
         print('正在爬取第{}/{}:{}{}'.format(I,len(name_list),cn_name,en_name))
 
         # 为每个name创建文件夹
-        en_name_dir=en_name#''.join(en_name.split())
+        en_name_dir=en_name
         
-        os.makedirs(os.path.join(root_dir,gender,en_name_dir,star_concept_name), exist_ok=True) #'{}/{}/{}/my_concept/'.format(root_dir,gender,en_name_dir)
-        os.makedirs(os.path.join(root_dir,gender,en_name_dir,star_output_name), exist_ok=True) #'{}/{}/{}/my_output/'.format(root_dir,gender,en_name_dir)
+        os.makedirs(os.path.join(root_dir,gender,en_name_dir,star_concept_name), exist_ok=True)
+        os.makedirs(os.path.join(root_dir,gender,en_name_dir,star_output_name), exist_ok=True)
 
         # 在concept中创建一个concept_word.txt，里面写上名字name_list[I][1]
         # path=os.path.join(root_dir,gender,en_name_dir,star_concept_name,'concept_word.txt')
