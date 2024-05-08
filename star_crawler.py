@@ -114,12 +114,24 @@ class Picture:
 
     #请求30张图片的链接
     def get_one_html(self, url, pn):
-        response = requests.get(url=url.format(self.name, self.name, pn, self.times), headers=self.headers).content.decode('utf-8')
+        while True:
+            try:
+                response = requests.get(url=url.format(self.name, self.name, pn, self.times), headers=self.headers).content.decode('utf-8')
+                break
+            except Exception as e:
+                print(f"error {e} occurred. Retrying...")
+                time.sleep(1)
         return response
 
     #请求单张图片内容
     def get_two_html(self, url):
-        response = requests.get(url=url, headers=self.headers).content
+        while True:
+            try:
+                response = requests.get(url=url, headers=self.headers).content
+                break
+            except Exception as e:
+                print(f"error {e} occurred. Retrying...")
+                time.sleep(1)
         return response
 
     #解析含30张图片的html的内容
