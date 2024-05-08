@@ -1,5 +1,5 @@
 fake-useragent
-xlrd
+xlrd==1.2.0
 xpinyin
 openpyxl
 opencv-python
