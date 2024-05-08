@@ -22,6 +22,16 @@ from tqdm.auto import tqdm
 # envpath = '/data/storage1/public/chenyu.liu/anaconda3/envs/py37/lib/python3.7/site-packages/cv2/qt/plugins/platforms'
 # os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = envpath
 
+def create_dir_or_file(path):
+    if not os.path.exists(path):
+        file_name, file_extension = os.path.splitext(path)
+        if file_extension == "":
+            os.makedirs(path, exist_ok=True)
+        else:
+            if not os.path.exists(path):
+                with open(path, 'w') as file:
+                    pass
+
 def read(pic_path):
     img=cv2.imread(pic_path)
     if img is None:
@@ -339,6 +349,7 @@ star_concept_name = 'concept'
 star_output_name = 'generated' #若没有可自动创建
 
 def main():
+    create_dir_or_file(root_dir)
     # 中文名转为英文名，写入文件
     cn_en_write(excel_path)
 
