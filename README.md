@@ -10,3 +10,5 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 python star_crawler.py
 ```
+## Download
+You can download images that have been crawled [here](https://drive.google.com/drive/folders/1JiR2HGW2DwlLVyxhAfPeI15_o-97nBC5?usp=sharing).
