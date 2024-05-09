@@ -360,7 +360,7 @@ img_size = 768
 
 # 根据基本参数变化的间接参数
 gender = 'man' if man else 'woman'
-excel_path = 'stars.xlsx'
+excel_path = 'star_names.xlsx'
 sheet_num = 1 if man else 2
 star_concept_name = 'concept'
 star_output_name = 'generated'
