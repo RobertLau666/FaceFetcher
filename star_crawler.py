@@ -16,7 +16,7 @@ import xlrd
 from xpinyin import Pinyin
 
 from fake_useragent import UserAgent
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 # envpath = '/data/storage1/public/chenyu.liu/anaconda3/envs/py37/lib/python3.7/site-packages/cv2/qt/plugins/platforms'
 # os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = envpath
@@ -64,7 +64,7 @@ def crop(img, H, W, center):
         l_y = 0
         if center[0] < max_size // 2:
             l_x = 0
-        elif center[0] > W-max_size // 2:
+        elif center[0] > W - max_size // 2:
             l_x = W - max_size
         else:
             l_x = center[0] - max_size // 2
@@ -72,7 +72,7 @@ def crop(img, H, W, center):
         l_x = 0
         if center[1] < max_size // 2:
             l_y = 0
-        elif center[1] > H-max_size // 2:
+        elif center[1] > H - max_size // 2:
             l_y = H - max_size
         else:
             l_y = center[1] - max_size // 2
@@ -164,8 +164,8 @@ class Picture:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-        if len(faces)>=1:
-            print("1 faces | len(faces):", len(faces))
+        if len(faces) >= 1:
+            print("1 faces | len(faces): ", len(faces))
             for (x, y, w, h) in faces:
                 print('Dealing with circular face: ', pic_path)
                 # 不需要画上框格
@@ -188,7 +188,7 @@ class Picture:
                     return 0
                 else:
                     # 开始裁剪
-                    center = [(2*x+w)//2, (2*y+h)//2]
+                    center = [(2 * x + w) // 2, (2 * y + h) // 2]
                     img = crop(img, H, W, center)
 
                     # 调整大小
@@ -200,7 +200,7 @@ class Picture:
                     return 1
                     
         else:
-            print("0 faces | len(faces):", len(faces))
+            print("0 faces | len(faces): ", len(faces))
             return 0
 
     #主函数
@@ -208,14 +208,14 @@ class Picture:
         # #判断该目录下是否存在与输入名称一样的文件夹 如果没有则创建 有就不执行if下的创建
         # if not os.path.exists('./{}/'.format(self.en_name_dir)):
         #     os.mkdir('./{}'.format(self.en_name_dir))
-        print('self.url:', self.url)
+        print('self.url: ', self.url)
         response = self.get_one_html(self.url, 0)
         regex1 = re.compile('"displayNum":(.*?),')
         num = self.parse_html(regex1, response)[0] #获取总的照片数量
         print('{}{}一共有{}张照片'.format(self.cn_name, self.en_name,num)) #打印总的照片数量
 
         #判断总数能不能整除30
-        if int(num)%30 == 0:
+        if int(num) % 30 == 0:
             pn = int(num) / 30
         else:
             # 总数量除30是因为每一个链接有30张照片 +2是因为要想range最多取到该数就需要+1
@@ -273,8 +273,8 @@ class Picture:
                     # 看是否满足条件
                     res=self.well_detection(img, pic_path)
 
-                    if res==1:
-                        num_pic+=1
+                    if res == 1:
+                        num_pic += 1
                         print('saved 第{}人{}{}, 第{}/{}张照片, pic_path:{}\n'.format(self.I, self.cn_name, self.en_name, num_pic, max_pic_num, pic_path)) #下载完一张图片后打印
                     else:
                         print('不满足条件\n')
@@ -336,7 +336,7 @@ def cn_en_write(excel_path):
 
 # 基本参数设置
 root_dir = 'Stars'
-man = False # True
+man = True
 # 每个人需要下载多少张图片
 max_pic_num = 10
 # 从第几个人开始 第一行就是序号为0
@@ -371,7 +371,7 @@ def main():
     cn_en_write(excel_path)
 
     # 获取中英名list:[[cn,en],[cn,en],...]
-    name_list=read_excel(excel_path)
+    name_list = read_excel(excel_path)
     print('name_list: ', name_list)
 
     for I in tqdm(range(start, len(name_list))):
