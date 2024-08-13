@@ -313,7 +313,6 @@ class Spider:
 
 # 基本参数设置
 root_dir = 'output'
-# is_man = True
 # 每个人需要下载多少张图片
 max_pic_num = 10
 # 从第几个人开始 第一行就是序号为0
@@ -324,7 +323,7 @@ size_type = "extra large"
 # b = 1.5
 # 裁剪后可接受的长宽比
 # rate = 1.3
-#' 正脸 高清 大尺寸'
+# '正脸 高清 大尺寸'
 limit = ''
 # 分别对应 全部尺寸0 特大尺寸9 大尺寸3 中尺寸2 小尺寸1 暂时没用到该参数 还是调上面self.url就行了
 size_level = 9
@@ -336,11 +335,10 @@ face_img_rate = 0.03
 img_size = 768
 
 # 根据基本参数变化的间接参数
-sheet_name = 'Sheet_man' # if is_man else 'woman'
 excel_path = 'person_names.xlsx'
-# sheet_num = 1 # if is_man else 2
+sheet_name = 'Sheet_man'
 star_concept_name = 'concept'
-# star_output_name = 'generated'
+
 
 def main():
     create_dir_or_file(root_dir)
@@ -354,13 +352,11 @@ def main():
     for I in tqdm(range(start, len(name_list))):
         cn_name, en_name = name_list[I][0], name_list[I][1]
         star_concept_dir = os.path.join(root_dir, sheet_name, en_name, star_concept_name)
-        # star_output_dir = os.path.join(root_dir, sheet_name, en_name, star_output_name)
         if os.path.exists(star_concept_dir):
             if os.listdir(star_concept_dir) == max_pic_num:
                 continue
         else:
             create_dir_or_file(star_concept_dir)
-            # create_dir_or_file(star_output_dir)
 
             print('Downloading images: {}/{}: {} {}'.format(I, len(name_list), cn_name, en_name))
             spider = Spider(I, cn_name, en_name, en_name)
