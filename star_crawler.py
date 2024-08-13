@@ -1,25 +1,36 @@
-import re
-import requests
-import time
-from urllib import parse
+# import re
+# import requests
+# import time
+# from urllib import parse
+# import os
+# import cv2
+# import PIL
+# from PIL import Image
+# from io import BytesIO
+# import numpy as np
+# import openpyxl
+# import xlrd
+# from xpinyin import Pinyin
+# from fake_useragent import UserAgent
+# from tqdm import tqdm
+
 import os
+import re
+import time
+import requests
+from urllib import parse
+from io import BytesIO
+
 import cv2
+import numpy as np
 import PIL
 from PIL import Image
-from io import BytesIO
-import numpy as np
-
 import openpyxl
-from openpyxl import Workbook, load_workbook
-from openpyxl.writer.excel import ExcelWriter
 import xlrd
 from xpinyin import Pinyin
-
 from fake_useragent import UserAgent
 from tqdm import tqdm
 
-# envpath = '/data/storage1/public/chenyu.liu/anaconda3/envs/py37/lib/python3.7/site-packages/cv2/qt/plugins/platforms'
-# os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = envpath
 
 def create_dir_or_file(path):
     if not os.path.exists(path):
@@ -78,17 +89,13 @@ def crop(img, H, W, center):
             l_y = center[1] - max_size // 2
 
     img = img[l_y:l_y + max_size, l_x:l_x + max_size]
-    print("croped: ", img.shape)
-
     return img
 
 def resize(img, img_size):
     img = cv2.resize(img, (int(img_size), int(img_size)))
-    print("resized: ", img.shape)
-
     return img
 
-class Picture:
+class Spider:
     def __init__(self, I, cn_name, en_name, en_name_dir):
         self.I = I
         self.cn_name = cn_name
@@ -102,12 +109,12 @@ class Picture:
             self.url = 'https://image.baidu.com/search/acjson?tn=resultjson_com&logid=8032920601831512061&ipn=rj&ct=201326592&is=&fp=result&fr=&word={}&cg=star&queryWord={}&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=&height=&face=&istype=&qc=&nc=1&expermode=&nojc=&isAsync=&pn={}&rn=30&gsm=1e&{}='
         elif size_type == "extra large": # 特大尺寸
             self.url = 'https://image.baidu.com/search/acjson?tn=resultjson_com&logid=5314417940526052016&ipn=rj&ct=201326592&is=&fp=result&fr=&word={}&cg=star&queryWord={}&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=9&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=0&height=0&face=&istype=&qc=&nc=&expermode=&nojc=&isAsync=&pn={}&rn=30&gsm=1e&{}='
-        else: # 未指定尺寸
+        else: # 未指定尺寸，则默认用全部尺寸
             self.url = 'https://image.baidu.com/search/acjson?tn=resultjson_com&logid=8032920601831512061&ipn=rj&ct=201326592&is=&fp=result&fr=&word={}&cg=star&queryWord={}&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=&height=&face=&istype=&qc=&nc=1&expermode=&nojc=&isAsync=&pn={}&rn=30&gsm=1e&{}='
         
         self.headers = {'User-Agent': UserAgent().random}
 
-    #请求30张图片的链接
+    # 请求30张图片的链接
     def get_one_html(self, url, pn):
         while True:
             try:
@@ -118,7 +125,7 @@ class Picture:
                 time.sleep(1)
         return response
 
-    #请求单张图片内容
+    # 请求单张图片内容
     def get_two_html(self, url):
         while True:
             try:
@@ -129,23 +136,13 @@ class Picture:
                 time.sleep(1)
         return response
 
-    #解析含30张图片的html的内容
+    # 解析含30张图片的html的内容
     def parse_html(self, regex, html):
         content = regex.findall(html)
         return content
 
     def well_detection(self, img, pic_path):
-        # 检测人脸数量
-        # face_num=get_face_num(content)
-        # if face_num==1:
-        #     # 裁剪、调整大小
-        #     content=crop_resize(content)
-        #     return content
-        # else:
-        #     return False
-
         # 读取图片
-        # img,W,H=read(pic_path)
         W, H = img.shape[1], img.shape[0]
         print('W,H读取没问题')
 
@@ -198,7 +195,6 @@ class Picture:
             print("0 faces | len(faces): ", len(faces))
             return 0
 
-    #主函数
     def run(self):
         # #判断该目录下是否存在与输入名称一样的文件夹 如果没有则创建 有就不执行if下的创建
         # if not os.path.exists('./{}/'.format(self.en_name_dir)):
@@ -230,9 +226,9 @@ class Picture:
             # regex2 = re.compile('"middleURL":"(.*?)"')
             # urls = self.parse_html(regex2,resp) #得到30张图片的链接（30个）
 
-            for j, u in enumerate(urls):  #遍历每张图片的链接
+            for j, u in enumerate(urls):  # 遍历每张图片的链接
                 print('u:', u)
-                if u.split(':')[0] == 'https':# and (u[-3:]=='jpg' or u[-4:]=='jpeg'):
+                if u.split(':')[0] == 'https': # and (u[-3:]=='jpg' or u[-4:]=='jpeg'):
                     try:
                         response = requests.get(url=u, headers=self.headers, timeout=(20.00, 10.00))
                         content = response.content
@@ -270,7 +266,7 @@ class Picture:
 
                     if res == 1:
                         num_pic += 1
-                        print('saved 第{}人{}{}, 第{}/{}张照片, pic_path:{}\n'.format(self.I, self.cn_name, self.en_name, num_pic, max_pic_num, pic_path)) #下载完一张图片后打印
+                        print('saved 第{}人{}{}, 第{}/{}张照片, pic_path:{}\n'.format(self.I, self.cn_name, self.en_name, num_pic, max_pic_num, pic_path))
                     else:
                         print('不满足条件\n')
                         # os.remove(pic_path)
@@ -381,7 +377,7 @@ def main():
             create_dir_or_file(star_output_dir)
 
             print('Downloading images: {}/{}: {} {}'.format(I, len(name_list), cn_name, en_name))
-            spider = Picture(I, cn_name, en_name, en_name)
+            spider = Spider(I, cn_name, en_name, en_name)
             spider.run()
 
 if __name__ == '__main__':
