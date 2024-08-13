@@ -1,19 +1,3 @@
-# import re
-# import requests
-# import time
-# from urllib import parse
-# import os
-# import cv2
-# import PIL
-# from PIL import Image
-# from io import BytesIO
-# import numpy as np
-# import openpyxl
-# import xlrd
-# from xpinyin import Pinyin
-# from fake_useragent import UserAgent
-# from tqdm import tqdm
-
 import os
 import re
 import time
