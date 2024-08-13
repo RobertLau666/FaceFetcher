@@ -50,7 +50,10 @@ def is_face_area_ok(face_area, img_area):
         print(f"1 face_area_ok | {face_area} / {img_area} = {face_rate} >= {face_img_rate}")
         return True
 
-def crop(img, H, W, center):
+def centered_square_crop(img, H, W, center):
+    '''
+    在给定图像的情况下，根据图像的尺寸和一个指定的中心点，将图像裁剪成一个正方形。裁剪后的正方形图像会尽可能保留以 center 为中心的区域。
+    '''
     max_size = min(H, W)
     
     l_x, l_y = 0, 0
@@ -75,9 +78,12 @@ def crop(img, H, W, center):
     img = img[l_y:l_y + max_size, l_x:l_x + max_size]
     return img
 
-def resize(img, resized_img_size):
-    img = cv2.resize(img, (int(resized_img_size), int(resized_img_size)))
-    return img
+def resize_image(img, resized_img_size_width, resized_img_size_height):
+    '''
+    对传入的图像进行重新缩放，将其调整为指定的宽度和高度。
+    '''
+    resized_img = cv2.resize(img, (int(resized_img_size_width), int(resized_img_size_height)))
+    return resized_img
 
 def read_excel(excel_path):
     book = xlrd.open_workbook(excel_path)
@@ -128,8 +134,8 @@ def cn2en_write(excel_path):
     return cn_en_name_list
 
 class Spider:
-    def __init__(self, I, cn_name, en_name, en_name_dir):
-        self.I = I
+    def __init__(self, index, cn_name, en_name, en_name_dir):
+        self.index = index
         self.cn_name = cn_name
         self.en_name = en_name
         self.en_name_dir = en_name_dir
@@ -209,18 +215,13 @@ class Spider:
                 if not face_area_ok:
                     return 0
                 else:
-                    # 开始裁剪
-                    center = [(2 * x + w) // 2, (2 * y + h) // 2]
-                    img = crop(img, H, W, center)
-
-                    # 调整大小
-                    img = resize(img, resized_img_size)
-
-                    # 重新保存图片
+                    if centered_square_crop_mode:
+                        center = [(2 * x + w) // 2, (2 * y + h) // 2]
+                        img = centered_square_crop(img, H, W, center)
+                    if resize_mode:
+                        img = resize_image(img, resized_img_size_width, resized_img_size_height)
                     cv2.imwrite(pic_path, img)
-                    
                     return 1
-                    
         else:
             print("0 faces | len(faces): ", len(faces))
             return 0
@@ -289,7 +290,7 @@ class Spider:
 
                     if res == 1:
                         num_pic += 1
-                        print('saved 第{}人{}{}, 第{}/{}张照片, pic_path:{}\n'.format(self.I, self.cn_name, self.en_name, num_pic, max_pic_num, pic_path))
+                        print('saved 第{}人{}{}, 第{}/{}张照片, pic_path:{}\n'.format(self.index, self.cn_name, self.en_name, num_pic, max_pic_num, pic_path))
                     else:
                         print('不满足条件\n')
                         # os.remove(pic_path)
@@ -307,7 +308,7 @@ save_root_dir = 'output'
 # 每个人需要下载多少张图片
 max_pic_num = 10
 # 从第几个人开始 第一行的序号为0
-start = 0
+start_index = 0
 ## 筛选
 # 指定下载图片尺寸类型
 size_type = "extra large"
@@ -324,8 +325,11 @@ resolution_boundary = 768
 # 脸图比例，小于这个不考虑
 face_img_rate = 0.03
 ## 后处理
+centered_square_crop_mode = True
+resize_mode = True
 # resize后的图像大小
-resized_img_size = 768
+resized_img_size_width = 768
+resized_img_size_height = 768
 
 # 根据基本参数变化的间接参数
 excel_path = 'person_names.xlsx'
@@ -340,16 +344,16 @@ def main():
     name_list = read_excel(excel_path)
     print('name_list: ', name_list)
 
-    for I in tqdm(range(start, len(name_list))):
-        cn_name, en_name = name_list[I][0], name_list[I][1]
-        star_concept_dir = os.path.join(save_root_dir, sheet_name, en_name)
-        if os.path.exists(star_concept_dir):
-            if os.listdir(star_concept_dir) == max_pic_num:
+    for index in tqdm(range(start_index, len(name_list))):
+        cn_name, en_name = name_list[index][0], name_list[index][1]
+        en_name_dir = os.path.join(save_root_dir, sheet_name, en_name)
+        if os.path.exists(en_name_dir):
+            if os.listdir(en_name_dir) == max_pic_num:
                 continue
         else:
-            create_dir_or_file(star_concept_dir)
-            print('Downloading images: {}/{}: {} {}'.format(I, len(name_list), cn_name, en_name))
-            spider = Spider(I, cn_name, en_name, en_name)
+            create_dir_or_file(en_name_dir)
+            print('Downloading images: {}/{}: {} {}'.format(index, len(name_list), cn_name, en_name))
+            spider = Spider(index, cn_name, en_name, en_name)
             spider.run()
 
 if __name__ == '__main__':
