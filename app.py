@@ -294,7 +294,7 @@ class Spider:
 
 ## 基本参数设置
 excel_path = 'person_names.xlsx'
-sheet_name = 'Sheet_man'
+sheet_name = 'Sheet_woman'
 save_root_dir = 'output'
 # 每个人需要下载多少张图片
 fetch_image_nums_per_person = 10
