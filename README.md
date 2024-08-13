@@ -5,7 +5,7 @@ git clone https://github.com/RobertLau666/FaceFetcher.git
 cd FaceFetcher
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-## Prepare data
+## Prepare
 1. Put the person names you want to fetch in the first column of any Sheet in ```person_names.xlsx```.
 2. Modify parameters in ```app.py```.
 > Don't worry about duplicate names in the same column, the program will automatically merge the duplicate names.
