@@ -79,6 +79,54 @@ def resize(img, img_size):
     img = cv2.resize(img, (int(img_size), int(img_size)))
     return img
 
+def read_excel(excel_path):
+    book = xlrd.open_workbook(excel_path)
+    sheet = book.sheet_by_name(u'Sheet{}'.format(sheet_num))
+    nrows, ncols = sheet.nrows, sheet.ncols
+
+    name_list = []
+    for i in range(nrows):
+        row = sheet.row_values(i)
+        name_list.append(row)
+
+    return name_list
+
+def number_to_letter(num):
+    letter = chr(64 + num)
+    return letter
+
+def cn_en_write(excel_path):
+    book = xlrd.open_workbook(excel_path)
+    sheet = book.sheet_by_name(u'Sheet{}'.format(sheet_num))
+    cn_names = sheet.col_values(0)
+    cn_names = list(set([cn_name for cn_name in cn_names if cn_name != ""]))
+    print("cn_names", cn_names, len(cn_names))
+
+    p = Pinyin()
+    cn_en_name_list = []
+    for i in range(len(cn_names)):
+        result1 = p.get_pinyin(cn_names[i])
+        s = result1.split('-')
+        result3 = s[0].capitalize() + ''.join(s[1:]).capitalize()
+        cn_en_name_list.append([cn_names[i], result3, 0])
+    cn_en_name_list = sorted(cn_en_name_list, key=lambda x: x[1])
+    print('cn_en_name_list', cn_en_name_list)
+    
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["Sheet{}".format(sheet_num)]
+
+    # Set to blank firstly
+    for row in ws.iter_rows():
+        for cell in row:
+            cell.value = None
+    
+    for r in range(len(cn_en_name_list)):
+        for c in range(len(cn_en_name_list[0])):
+            ws[f"{number_to_letter(c + 1)}" + str(r + 1)] = cn_en_name_list[r][c]
+    wb.save(excel_path)
+
+    return cn_en_name_list
+    
 class Spider:
     def __init__(self, I, cn_name, en_name, en_name_dir):
         self.I = I
@@ -261,53 +309,7 @@ class Spider:
             if num_pic == max_pic_num:
                 break
 
-def read_excel(excel_path):
-    book = xlrd.open_workbook(excel_path)
-    sheet = book.sheet_by_name(u'Sheet{}'.format(sheet_num))
-    nrows, ncols = sheet.nrows, sheet.ncols
 
-    name_list = []
-    for i in range(nrows):
-        row = sheet.row_values(i)
-        name_list.append(row)
-
-    return name_list
-
-def number_to_letter(num):
-    letter = chr(64 + num)
-    return letter
-
-def cn_en_write(excel_path):
-    book = xlrd.open_workbook(excel_path)
-    sheet = book.sheet_by_name(u'Sheet{}'.format(sheet_num))
-    cn_names = sheet.col_values(0)
-    cn_names = list(set([cn_name for cn_name in cn_names if cn_name != ""]))
-    print("cn_names", cn_names, len(cn_names))
-
-    p = Pinyin()
-    cn_en_name_list = []
-    for i in range(len(cn_names)):
-        result1 = p.get_pinyin(cn_names[i])
-        s = result1.split('-')
-        result3 = s[0].capitalize() + ''.join(s[1:]).capitalize()
-        cn_en_name_list.append([cn_names[i], result3, 0])
-    cn_en_name_list = sorted(cn_en_name_list, key=lambda x: x[1])
-    print('cn_en_name_list', cn_en_name_list)
-    
-    wb = openpyxl.load_workbook(excel_path)
-    ws = wb["Sheet{}".format(sheet_num)]
-
-    # Set to blank firstly
-    for row in ws.iter_rows():
-        for cell in row:
-            cell.value = None
-    
-    for r in range(len(cn_en_name_list)):
-        for c in range(len(cn_en_name_list[0])):
-            ws[f"{number_to_letter(c + 1)}" + str(r + 1)] = cn_en_name_list[r][c]
-    wb.save(excel_path)
-
-    return cn_en_name_list
 
 # 基本参数设置
 root_dir = 'Stars'
