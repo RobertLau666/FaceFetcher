@@ -281,13 +281,13 @@ class Spider:
 
                     if res == 1:
                         img_record_num += 1
-                        print('saved 第{}人{}{}, 第{}/{}张照片, img_save_path:{}\n'.format(self.index, self.cn_name, self.en_name, img_record_num, images_num_per_person, img_save_path))
+                        print('saved 第{}人{}{}, 第{}/{}张照片, img_save_path:{}\n'.format(self.index, self.cn_name, self.en_name, img_record_num, fetch_image_nums_per_person, img_save_path))
                     else:
                         print('不满足条件\n')
 
-                if img_record_num == images_num_per_person:
+                if img_record_num == fetch_image_nums_per_person:
                     break
-            if img_record_num == images_num_per_person:
+            if img_record_num == fetch_image_nums_per_person:
                 break
 
 
@@ -297,7 +297,7 @@ excel_path = 'person_names.xlsx'
 sheet_name = 'Sheet_man'
 save_root_dir = 'output'
 # 每个人需要下载多少张图片
-images_num_per_person = 10
+fetch_image_nums_per_person = 10
 # 从第几个人开始 第一行的序号为0
 start_fetch_row = 0
 
@@ -337,7 +337,7 @@ def main():
     for index in tqdm(range(start_fetch_row, len(name_list))):
         cn_name, en_name = name_list[index][0], name_list[index][1]
         en_name_dir = os.path.join(save_root_dir, sheet_name, en_name)
-        if os.path.exists(en_name_dir) and len(os.listdir(en_name_dir)) == images_num_per_person:
+        if os.path.exists(en_name_dir) and len(os.listdir(en_name_dir)) == fetch_image_nums_per_person:
             continue
         else:
             create_dir_or_file(en_name_dir)
