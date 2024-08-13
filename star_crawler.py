@@ -126,7 +126,7 @@ def cn_en_write(excel_path):
     wb.save(excel_path)
 
     return cn_en_name_list
-    
+
 class Spider:
     def __init__(self, I, cn_name, en_name, en_name_dir):
         self.I = I
@@ -294,7 +294,7 @@ class Spider:
                     #     print('爬保:',pic_path)
                     
                     # 看是否满足条件
-                    res=self.well_detection(img, pic_path)
+                    res = self.well_detection(img, pic_path)
 
                     if res == 1:
                         num_pic += 1
