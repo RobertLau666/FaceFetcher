@@ -33,15 +33,15 @@ def read(pic_path):
     W, H = img.shape[1], img.shape[0]
     return img, W, H
 
-def res_detect(W, H):
-    if W < resolution or H < resolution:
+def is_res_detect_ok(W, H):
+    if W < resolution_boundary or H < resolution_boundary:
         print("0 res_detect | W, H: ", W, H)
         return False
     else:
         print("1 res_detect | W, H: ", W, H)
         return True
 
-def face_area_ok(face_area, img_area):
+def is_face_area_ok(face_area, img_area):
     face_rate = face_area / img_area
     if face_rate < face_img_rate:
         print(f"0 face_area_ok | {face_area} / {img_area} = {face_rate} < {face_img_rate}")
@@ -75,8 +75,8 @@ def crop(img, H, W, center):
     img = img[l_y:l_y + max_size, l_x:l_x + max_size]
     return img
 
-def resize(img, img_size):
-    img = cv2.resize(img, (int(img_size), int(img_size)))
+def resize(img, resized_img_size):
+    img = cv2.resize(img, (int(resized_img_size), int(resized_img_size)))
     return img
 
 def read_excel(excel_path):
@@ -174,13 +174,11 @@ class Spider:
         return content
 
     def well_detection(self, img, pic_path):
-        # 读取图片
         W, H = img.shape[1], img.shape[0]
-        print('W,H读取没问题')
+        print('W, H读取没问题')
 
-        # 判断分辨率, 如果低于resolution，返回0
-        _res_detect = res_detect(W, H)
-        if not _res_detect:
+        res_detect_ok = is_res_detect_ok(W, H)
+        if not res_detect_ok:
             return 0
 
         # 检测人脸
@@ -207,8 +205,8 @@ class Spider:
                 
                 # 判断人脸大小是否满足比例
                 face_area, img_area = w*h, H*W
-                _face_area_ok = face_area_ok(face_area, img_area)
-                if not _face_area_ok:
+                face_area_ok = is_face_area_ok(face_area, img_area)
+                if not face_area_ok:
                     return 0
                 else:
                     # 开始裁剪
@@ -216,7 +214,7 @@ class Spider:
                     img = crop(img, H, W, center)
 
                     # 调整大小
-                    img = resize(img, img_size)
+                    img = resize(img, resized_img_size)
 
                     # 重新保存图片
                     cv2.imwrite(pic_path, img)
@@ -228,16 +226,13 @@ class Spider:
             return 0
 
     def run(self):
-        # #判断该目录下是否存在与输入名称一样的文件夹 如果没有则创建 有就不执行if下的创建
-        # if not os.path.exists('./{}/'.format(self.en_name_dir)):
-        #     os.mkdir('./{}'.format(self.en_name_dir))
         print('self.url: ', self.url)
         response = self.get_one_html(self.url, 0)
         regex1 = re.compile('"displayNum":(.*?),')
         num = self.parse_html(regex1, response)[0] #获取总的照片数量
         print('{}{}一共有{}张照片'.format(self.cn_name, self.en_name,num)) #打印总的照片数量
 
-        #判断总数能不能整除30
+        # 判断总数能不能整除30
         if int(num) % 30 == 0:
             pn = int(num) / 30
         else:
@@ -246,7 +241,7 @@ class Spider:
             pn = int(num) // 30 + 2
 
         num_pic = 0
-        for i in range(int(pn)): #遍历每一个含30张图片的链接
+        for i in range(int(pn)): # 遍历每一个含30张图片的链接
             resp = self.get_one_html(self.url, i * 30)
             urls = re.findall('"ObjURL":"(.*?)",', resp, re.S)
             print("urls1",urls)
@@ -287,12 +282,8 @@ class Spider:
                         continue
                     img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
 
-                    pic_path = os.path.join(root_dir, sheet_name, self.en_name_dir, f'{num_pic}.jpg')
-                    # pic_path='{}/{}/{}/my_concept/{}.jpg'.format(root_dir,sheet_name,self.en_name_dir,num_pic)
-                    # with open(pic_path,'wb') as f:
-                    #     f.write(content)
-                    #     print('爬保:',pic_path)
-                    
+                    pic_path = os.path.join(save_root_dir, sheet_name, self.en_name_dir, f'{num_pic}.jpg')
+
                     # 看是否满足条件
                     res = self.well_detection(img, pic_path)
 
@@ -312,34 +303,36 @@ class Spider:
 
 
 # 基本参数设置
-root_dir = 'output'
+save_root_dir = 'output'
 # 每个人需要下载多少张图片
 max_pic_num = 10
-# 从第几个人开始 第一行就是序号为0
+# 从第几个人开始 第一行的序号为0
 start = 0
+## 筛选
 # 指定下载图片尺寸类型
 size_type = "extra large"
 # 放大倍数
-# b = 1.5
+# enlarge_factor = 1.5
 # 裁剪后可接受的长宽比
-# rate = 1.3
+# acceptable_aspect_ratio = 1.3
 # '正脸 高清 大尺寸'
 limit = ''
 # 分别对应 全部尺寸0 特大尺寸9 大尺寸3 中尺寸2 小尺寸1 暂时没用到该参数 还是调上面self.url就行了
 size_level = 9
-# 分辨率分界线，低于这个的pass掉
-resolution = 768
+# 分辨率分界线，长或宽低于这个的pass掉
+resolution_boundary = 768
 # 脸图比例，小于这个不考虑
 face_img_rate = 0.03
+## 后处理
 # resize后的图像大小
-img_size = 768
+resized_img_size = 768
 
 # 根据基本参数变化的间接参数
 excel_path = 'person_names.xlsx'
 sheet_name = 'Sheet_man'
 
 def main():
-    create_dir_or_file(root_dir)
+    create_dir_or_file(save_root_dir)
     # 中文名转为英文名，写入文件
     cn2en_write(excel_path)
 
@@ -349,13 +342,12 @@ def main():
 
     for I in tqdm(range(start, len(name_list))):
         cn_name, en_name = name_list[I][0], name_list[I][1]
-        star_concept_dir = os.path.join(root_dir, sheet_name, en_name)
+        star_concept_dir = os.path.join(save_root_dir, sheet_name, en_name)
         if os.path.exists(star_concept_dir):
             if os.listdir(star_concept_dir) == max_pic_num:
                 continue
         else:
             create_dir_or_file(star_concept_dir)
-
             print('Downloading images: {}/{}: {} {}'.format(I, len(name_list), cn_name, en_name))
             spider = Spider(I, cn_name, en_name, en_name)
             spider.run()
