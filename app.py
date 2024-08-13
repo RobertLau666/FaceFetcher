@@ -287,7 +287,7 @@ class Spider:
                         continue
                     img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
 
-                    pic_path = os.path.join(root_dir, sheet_name, self.en_name_dir, star_concept_name, f'{num_pic}.jpg')
+                    pic_path = os.path.join(root_dir, sheet_name, self.en_name_dir, f'{num_pic}.jpg')
                     # pic_path='{}/{}/{}/my_concept/{}.jpg'.format(root_dir,sheet_name,self.en_name_dir,num_pic)
                     # with open(pic_path,'wb') as f:
                     #     f.write(content)
@@ -337,8 +337,6 @@ img_size = 768
 # 根据基本参数变化的间接参数
 excel_path = 'person_names.xlsx'
 sheet_name = 'Sheet_man'
-star_concept_name = 'concept'
-
 
 def main():
     create_dir_or_file(root_dir)
@@ -351,7 +349,7 @@ def main():
 
     for I in tqdm(range(start, len(name_list))):
         cn_name, en_name = name_list[I][0], name_list[I][1]
-        star_concept_dir = os.path.join(root_dir, sheet_name, en_name, star_concept_name)
+        star_concept_dir = os.path.join(root_dir, sheet_name, en_name)
         if os.path.exists(star_concept_dir):
             if os.listdir(star_concept_dir) == max_pic_num:
                 continue
