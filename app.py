@@ -26,8 +26,8 @@ def create_dir_or_file(path):
                 with open(path, 'w') as file:
                     pass
 
-def read(pic_path):
-    img = cv2.imread(pic_path)
+def read(img_save_path):
+    img = cv2.imread(img_save_path)
     if img is None:
         return 0
     W, H = img.shape[1], img.shape[0]
@@ -179,7 +179,7 @@ class Spider:
         content = regex.findall(html)
         return content
 
-    def well_detection(self, img, pic_path):
+    def well_detection(self, img, img_save_path):
         W, H = img.shape[1], img.shape[0]
         print('W, H读取没问题')
 
@@ -195,7 +195,7 @@ class Spider:
         if len(faces) >= 1:
             print("1 faces | len(faces): ", len(faces))
             for (x, y, w, h) in faces:
-                print('Dealing with circular face: ', pic_path)
+                print('Dealing with circular face: ', img_save_path)
                 # 不需要画上框格
                 # img=cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
 
@@ -220,18 +220,17 @@ class Spider:
                         img = centered_square_crop(img, H, W, center)
                     if resize_mode:
                         img = resize_image(img, resized_img_size_width, resized_img_size_height)
-                    cv2.imwrite(pic_path, img)
+                    cv2.imwrite(img_save_path, img)
                     return 1
         else:
             print("0 faces | len(faces): ", len(faces))
             return 0
 
     def run(self):
-        print('self.url: ', self.url)
         response = self.get_one_html(self.url, 0)
         regex1 = re.compile('"displayNum":(.*?),')
-        num = self.parse_html(regex1, response)[0] #获取总的照片数量
-        print('{}{}一共有{}张照片'.format(self.cn_name, self.en_name,num)) #打印总的照片数量
+        num = self.parse_html(regex1, response)[0] # 获取总的照片数量
+        print('{}{}一共有{}张照片'.format(self.cn_name, self.en_name, num)) # 打印总的照片数量
 
         # 判断总数能不能整除30
         if int(num) % 30 == 0:
@@ -241,26 +240,20 @@ class Spider:
             # 另外的+1是因为该总数除30可能有余数，有余数就需要一个链接 所以要+1
             pn = int(num) // 30 + 2
 
-        num_pic = 0
+        img_record_num = len(os.listdir(os.path.join(save_root_dir, sheet_name, self.en_name)))
         for i in range(int(pn)): # 遍历每一个含30张图片的链接
             resp = self.get_one_html(self.url, i * 30)
             urls = re.findall('"ObjURL":"(.*?)",', resp, re.S)
-            print("urls1",urls)
             for i in range(len(urls)):
                 urls[i] = ''.join(urls[i].split('\\'))
-            print("urls2", urls)
+            print("urls: ", urls)
 
-            # resp = self.get_one_html(self.url, i * 30)
-            # regex2 = re.compile('"middleURL":"(.*?)"')
-            # urls = self.parse_html(regex2,resp) #得到30张图片的链接（30个）
-
-            for j, u in enumerate(urls):  # 遍历每张图片的链接
-                print('u:', u)
-                if u.split(':')[0] == 'https': # and (u[-3:]=='jpg' or u[-4:]=='jpeg'):
+            for j, url in enumerate(urls):  # 遍历每张图片的链接
+                print('url: ', url)
+                if url.split(':')[0] == 'https':
                     try:
-                        response = requests.get(url=u, headers=self.headers, timeout=(20.00, 10.00))
+                        response = requests.get(url=url, headers=self.headers, timeout=(20.00, 10.00))
                         content = response.content
-                        # content = self.get_two_html(u) #请求每张图片的内容
                     except requests.exceptions.ConnectionError as e:
                         print('ConnectionError:', e)
                         continue
@@ -270,9 +263,7 @@ class Spider:
                     except requests.exceptions.ChunkedEncodingError as e:
                         print('ChunkedEncodingError:', e)
                         continue
-                    # content = self.get_two_html(u) #请求每张图片的内容
 
-                    print('下面要打开了')
                     try:
                         img = Image.open(BytesIO(content)).convert("RGB")
                     except PIL.UnidentifiedImageError as e:
@@ -283,32 +274,33 @@ class Spider:
                         continue
                     img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
 
-                    pic_path = os.path.join(save_root_dir, sheet_name, self.en_name_dir, f'{num_pic}.jpg')
+                    img_save_path = os.path.join(save_root_dir, sheet_name, self.en_name_dir, f'{img_record_num}.jpg')
 
                     # 看是否满足条件
-                    res = self.well_detection(img, pic_path)
+                    res = self.well_detection(img, img_save_path)
 
                     if res == 1:
-                        num_pic += 1
-                        print('saved 第{}人{}{}, 第{}/{}张照片, pic_path:{}\n'.format(self.index, self.cn_name, self.en_name, num_pic, max_pic_num, pic_path))
+                        img_record_num += 1
+                        print('saved 第{}人{}{}, 第{}/{}张照片, img_save_path:{}\n'.format(self.index, self.cn_name, self.en_name, img_record_num, images_num_per_person, img_save_path))
                     else:
                         print('不满足条件\n')
-                        # os.remove(pic_path)
-                        # print('删除了: 第{}张照片：{}\n'.format(num_pic,pic_path))
 
-                if num_pic == max_pic_num:
+                if img_record_num == images_num_per_person:
                     break
-            if num_pic == max_pic_num:
+            if img_record_num == images_num_per_person:
                 break
 
 
 
-# 基本参数设置
+## 基本参数设置
+excel_path = 'person_names.xlsx'
+sheet_name = 'Sheet_man'
 save_root_dir = 'output'
 # 每个人需要下载多少张图片
-max_pic_num = 10
+images_num_per_person = 10
 # 从第几个人开始 第一行的序号为0
-start_index = 0
+start_fetch_row = 0
+
 ## 筛选
 # 指定下载图片尺寸类型
 size_type = "extra large"
@@ -324,6 +316,7 @@ size_level = 9
 resolution_boundary = 768
 # 脸图比例，小于这个不考虑
 face_img_rate = 0.03
+
 ## 后处理
 centered_square_crop_mode = True
 resize_mode = True
@@ -331,9 +324,6 @@ resize_mode = True
 resized_img_size_width = 768
 resized_img_size_height = 768
 
-# 根据基本参数变化的间接参数
-excel_path = 'person_names.xlsx'
-sheet_name = 'Sheet_man'
 
 def main():
     create_dir_or_file(save_root_dir)
@@ -344,12 +334,11 @@ def main():
     name_list = read_excel(excel_path)
     print('name_list: ', name_list)
 
-    for index in tqdm(range(start_index, len(name_list))):
+    for index in tqdm(range(start_fetch_row, len(name_list))):
         cn_name, en_name = name_list[index][0], name_list[index][1]
         en_name_dir = os.path.join(save_root_dir, sheet_name, en_name)
-        if os.path.exists(en_name_dir):
-            if os.listdir(en_name_dir) == max_pic_num:
-                continue
+        if os.path.exists(en_name_dir) and len(os.listdir(en_name_dir)) == images_num_per_person:
+            continue
         else:
             create_dir_or_file(en_name_dir)
             print('Downloading images: {}/{}: {} {}'.format(index, len(name_list), cn_name, en_name))
