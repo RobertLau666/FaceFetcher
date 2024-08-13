@@ -2,6 +2,7 @@
 ## Install
 ```
 git clone https://github.com/RobertLau666/FaceFetcher.git
+cd FaceFetcher
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 ## Prepare data
