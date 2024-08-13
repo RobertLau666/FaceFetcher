@@ -81,7 +81,7 @@ def resize(img, img_size):
 
 def read_excel(excel_path):
     book = xlrd.open_workbook(excel_path)
-    sheet = book.sheet_by_name(u'Sheet{}'.format(sheet_num))
+    sheet = book.sheet_by_name(sheet_name)
     nrows, ncols = sheet.nrows, sheet.ncols
 
     name_list = []
@@ -95,9 +95,9 @@ def number_to_letter(num):
     letter = chr(64 + num)
     return letter
 
-def cn_en_write(excel_path):
+def cn2en_write(excel_path):
     book = xlrd.open_workbook(excel_path)
-    sheet = book.sheet_by_name(u'Sheet{}'.format(sheet_num))
+    sheet = book.sheet_by_name(sheet_name)
     cn_names = sheet.col_values(0)
     cn_names = list(set([cn_name for cn_name in cn_names if cn_name != ""]))
     print("cn_names", cn_names, len(cn_names))
@@ -113,7 +113,7 @@ def cn_en_write(excel_path):
     print('cn_en_name_list', cn_en_name_list)
     
     wb = openpyxl.load_workbook(excel_path)
-    ws = wb["Sheet{}".format(sheet_num)]
+    ws = wb[sheet_name]
 
     # Set to blank firstly
     for row in ws.iter_rows():
@@ -287,8 +287,8 @@ class Spider:
                         continue
                     img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
 
-                    pic_path = os.path.join(root_dir, gender, self.en_name_dir, star_concept_name, f'{num_pic}.jpg')
-                    # pic_path='{}/{}/{}/my_concept/{}.jpg'.format(root_dir,gender,self.en_name_dir,num_pic)
+                    pic_path = os.path.join(root_dir, sheet_name, self.en_name_dir, star_concept_name, f'{num_pic}.jpg')
+                    # pic_path='{}/{}/{}/my_concept/{}.jpg'.format(root_dir,sheet_name,self.en_name_dir,num_pic)
                     # with open(pic_path,'wb') as f:
                     #     f.write(content)
                     #     print('爬保:',pic_path)
@@ -312,8 +312,8 @@ class Spider:
 
 
 # 基本参数设置
-root_dir = 'Stars'
-man = True
+root_dir = 'output'
+# is_man = True
 # 每个人需要下载多少张图片
 max_pic_num = 10
 # 从第几个人开始 第一行就是序号为0
@@ -336,16 +336,16 @@ face_img_rate = 0.03
 img_size = 768
 
 # 根据基本参数变化的间接参数
-gender = 'man' if man else 'woman'
-excel_path = 'star_names.xlsx'
-sheet_num = 1 if man else 2
+sheet_name = 'Sheet_man' # if is_man else 'woman'
+excel_path = 'person_names.xlsx'
+# sheet_num = 1 # if is_man else 2
 star_concept_name = 'concept'
-star_output_name = 'generated'
+# star_output_name = 'generated'
 
 def main():
     create_dir_or_file(root_dir)
     # 中文名转为英文名，写入文件
-    cn_en_write(excel_path)
+    cn2en_write(excel_path)
 
     # 获取中英名list:[[cn,en],[cn,en],...]
     name_list = read_excel(excel_path)
@@ -353,14 +353,14 @@ def main():
 
     for I in tqdm(range(start, len(name_list))):
         cn_name, en_name = name_list[I][0], name_list[I][1]
-        star_concept_dir = os.path.join(root_dir, gender, en_name, star_concept_name)
-        star_output_dir = os.path.join(root_dir, gender, en_name, star_output_name)
+        star_concept_dir = os.path.join(root_dir, sheet_name, en_name, star_concept_name)
+        # star_output_dir = os.path.join(root_dir, sheet_name, en_name, star_output_name)
         if os.path.exists(star_concept_dir):
             if os.listdir(star_concept_dir) == max_pic_num:
                 continue
         else:
             create_dir_or_file(star_concept_dir)
-            create_dir_or_file(star_output_dir)
+            # create_dir_or_file(star_output_dir)
 
             print('Downloading images: {}/{}: {} {}'.format(I, len(name_list), cn_name, en_name))
             spider = Spider(I, cn_name, en_name, en_name)
