@@ -14,6 +14,6 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 python app.py
 ```
 ## Download
-You can download images that have been fetched [here](https://drive.google.com/drive/folders/1JiR2HGW2DwlLVyxhAfPeI15_o-97nBC5?usp=sharing).
+You can download the fetched images of ```person_names.xlsx``` from [here](https://drive.google.com/drive/folders/1JiR2HGW2DwlLVyxhAfPeI15_o-97nBC5?usp=sharing).
 ## Result presentation
 ![demo.jpeg](assets/demo_images/demo.webp)
